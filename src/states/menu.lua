@@ -2,7 +2,7 @@
 local menu = {}
 local selection = 1
 local options = {"Play vs Computer", "Play Locally", "Play Online", "Exit"}
-local difficulties = {"Easy", "Medium", "Hard"}
+local difficulties = {"Easy", "Medium", "Hard", "Return to Main Menu"}
 local difficulty = "Easy"
 local state = "main"
 local currentState = nil
@@ -14,12 +14,22 @@ local bgWidth, bgHeight
 -- Button images
 local buttons = {}
 local hoveredButtons = {}
+local difficultyButtons = {}
+local difficultyHButtons = {}
 local buttonWidth, buttonHeight
 
+-- Error image
+local errorImage
+
+-- Track loading errors
+local imageLoadErrors = {}
+
 function loadButtonImage(name)
-    local image = love.graphics.newImage(name)
-    if not image then
-        error("Failed to load image: " .. name)
+    local success, image = pcall(love.graphics.newImage, name)
+    if not success then
+        print("Failed to load image: " .. name .. ". Using error image.")
+        image = errorImage
+        table.insert(imageLoadErrors, name)
     end
     return image
 end
@@ -28,6 +38,11 @@ function menu.enter()
     -- Load menu assets and initialize menu state
     selection = 1
     state = "main"
+
+    -- Load the error image
+    errorImage = love.graphics.newImage("assets/ui/error.png")
+
+    -- Load the background image
     backgroundImage = loadButtonImage("assets/ui/mainbg.png")
     bgWidth, bgHeight = backgroundImage:getDimensions()
 
@@ -38,12 +53,24 @@ function menu.enter()
     buttons["Exit"] = loadButtonImage("assets/ui/Exitbut.png")
 
     -- Load hover button images
-    --hoveredButtons["Play vs Computer"] = loadButtonImage("assets/ui/ComputerBut_hover.png")
-    --hoveredButtons["Play Locally"] = loadButtonImage("assets/ui/LocalBut_hover.png")
-    --hoveredButtons["Play Online"] = loadButtonImage("assets/ui/OnlineBut_hover.png")
-    --hoveredButtons["Exit"] = loadButtonImage("assets/ui/ExitX_hover.png")
+    hoveredButtons["Play vs Computer"] = loadButtonImage("assets/ui/ComputerBut_hover.png")
+    hoveredButtons["Play Locally"] = loadButtonImage("assets/ui/LocalBut_hover.png")
+    hoveredButtons["Play Online"] = loadButtonImage("assets/ui/OnlineBut_hover.png")
+    hoveredButtons["Exit"] = loadButtonImage("assets/ui/Exitbut_hover.png")
 
-    buttonWidth, buttonHeight = 200,45
+    --Load difficulty button images
+    difficultyButtons["Easy"] = loadButtonImage("assets/ui/EasyBut.png")
+    difficultyButtons["Medium"] = loadButtonImage("assets/ui/MediumBut.png")
+    difficultyButtons["Hard"] = loadButtonImage("assets/ui/HardBut.png")
+    difficultyButtons["Return to Main Menu"] = loadButtonImage("assets/ui/ReturnBut.png")
+
+    --Load difficulty hover button images
+    difficultyHButtons["Easy"] = loadButtonImage("assets/ui/EasyBut_hover.png")
+    difficultyHButtons["Medium"] = loadButtonImage("assets/ui/MediumBut_hover.png")
+    difficultyHButtons["Hard"] = loadButtonImage("assets/ui/HardBut_hover.png")
+    difficultyHButtons["Return to Main Menu"] = loadButtonImage("assets/ui/ReturnBut_hover.png")
+
+    buttonWidth, buttonHeight = 317, 72
 end
 
 function menu.update(dt)
@@ -69,43 +96,52 @@ function menu.draw()
 
     love.graphics.draw(backgroundImage, offsetX, offsetY, 0, scale, scale)
 
-    -- Define container dimensions
-    local containerWidth = love.graphics.getWidth() * 0.3
-    local containerHeight = love.graphics.getHeight() * 0.2
-    local containerX = (love.graphics.getWidth() - containerWidth) / 1
-    local containerY = (love.graphics.getHeight() - containerHeight) / 1 + 50
+    -- Scale factor for buttons
+    local buttonScale = 1
 
-    -- Calculate button scale to fit in the container
-    local buttonScale = containerWidth / buttonWidth
-    local buttonSpacing = 20
-    local totalButtonHeight = (#options * buttonHeight * buttonScale) + ((#options - 1) * buttonSpacing)
-
-    -- Adjust yStart to center buttons within the container
-    local yStart = containerY + (containerHeight - totalButtonHeight) / 2
+    -- Adjust yStart to move buttons lower on the screen
+    local yStart = love.graphics.getHeight() / 2 + 50 - (#options / 2 * (buttonHeight * buttonScale - 55))
 
     if state == "main" then
         for i, option in ipairs(options) do
-            local y = yStart + (i - 1) * (buttonHeight * buttonScale + buttonSpacing)
-            local buttonX = containerX + (containerWidth - buttonWidth * buttonScale) / 2
+            local y = yStart + (i - 1) * (buttonHeight * buttonScale + 20)
+            local buttonX = love.graphics.getWidth() / 2 - (buttonWidth * buttonScale) / 2
             if i == selection then
                 -- Draw shadow for hovered button
                 love.graphics.setColor(0, 0, 0, 0.5) -- Shadow color
-                love.graphics.rectangle("fill", buttonX + 5, y + 5, buttonWidth * buttonScale, buttonHeight * buttonScale)
+              --  love.graphics.rectangle("fill", buttonX + 5, y + 5, buttonWidth * buttonScale, buttonHeight * buttonScale)
                 love.graphics.setColor(1, 1, 1, 1) -- Reset color
 
-                --love.graphics.draw(hoveredButtons[option], buttonX, y, 0, buttonScale, buttonScale)
+                love.graphics.draw(hoveredButtons[option], buttonX, y, 0, buttonScale, buttonScale)
             else
                 love.graphics.draw(buttons[option], buttonX, y, 0, buttonScale, buttonScale)
             end
         end
     elseif state == "difficulty" then
-        love.graphics.printf("Select Difficulty", 0, containerY / 4, containerWidth, "center")
+        for i, option in ipairs(difficulties) do
+            local y = yStart + (i - 1) * (buttonHeight * buttonScale + 20)
+            local buttonX = love.graphics.getWidth() / 2 - (buttonWidth * buttonScale) / 2
+            if i == selection then
+                -- Draw shadow for hovered button
+                love.graphics.setColor(0, 0, 0, 0.5) -- Shadow color
+              --  love.graphics.rectangle("fill", buttonX + 5, y + 5, buttonWidth * buttonScale, buttonHeight * buttonScale)
+                love.graphics.setColor(1, 1, 1, 1) -- Reset color
 
-        for i, diff in ipairs(difficulties) do
-            local color = (i == selection) and {1, 1, 0} or {1, 1, 1} -- Highlight selection
-            love.graphics.setColor(color)
-            love.graphics.printf(diff, 0, yStart + (i - 1) * (buttonHeight * buttonScale + buttonSpacing), containerWidth, "center")
+                love.graphics.draw(difficultyHButtons[option], buttonX, y, 0, buttonScale, buttonScale)
+            else
+                love.graphics.draw(difficultyButtons[option], buttonX, y, 0, buttonScale, buttonScale)
+            end
         end
+    end
+
+    
+    -- log loading errors in error.log
+    if #imageLoadErrors > 0 then
+        local file = io.open("error.log", "w")
+        for i, error in ipairs(imageLoadErrors) do
+            file:write(error .. "\n")
+        end
+        file:close()
     end
 end
 
@@ -133,8 +169,15 @@ function menu.selectOption()
     end
 end
 
+
 function menu.keypressed(key)
-    -- Handle menu input for navigation and selection
+    if key == "escape" then
+        if state == "difficulty" then
+            state = "main"
+        else
+            love.event.quit()
+        end
+    end
 end
 
 return menu
