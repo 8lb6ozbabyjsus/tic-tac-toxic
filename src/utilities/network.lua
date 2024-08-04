@@ -1,4 +1,6 @@
 -- src/utilities/network.lua
+local json = require("json") -- Import the JSON module
+
 local network = {}
 
 function network.init()
@@ -50,6 +52,14 @@ function network.receive()
     -- ...
     
     -- You can also trigger other functions or events based on the received data
+    local function handleMessage(message)
+        -- Code to handle the message goes here
+    end
+    
+    local function handleCommand(command)
+        -- Code to handle the command goes here
+    end
+    
     if parsedData.type == "message" then
         handleMessage(parsedData.message)
     elseif parsedData.type == "command" then

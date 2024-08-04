@@ -23,3 +23,11 @@ function love.keypressed(key)
         currentState.keypressed(key)
     end
 end
+
+-- Function to change the game state
+function changeState(newState)
+    currentState = newState
+    if currentState.enter then
+        currentState.enter()
+    end
+end

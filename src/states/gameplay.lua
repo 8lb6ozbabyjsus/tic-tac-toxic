@@ -2,37 +2,6 @@
 local gameplay = {}
 local board = require "src.entities.board"
 local ai = require "src.utilities.ai"
-
-local mode = "local"
-local difficulty = "Easy"
-
-function gameplay.enter(gameMode, gameDifficulty)
-    mode = gameMode or "local"
-    difficulty = gameDifficulty or "Easy"
-    board.init()
-    print("Game mode: " .. mode)
-    print("Difficulty: " .. difficulty)
-end
-
-function gameplay.update(dt)
-    board.update(dt)
-    
-    if mode == "computer" then
-        local move = ai.getMove(board.getBoard(), difficulty)
-        -- Apply AI move
-        board.addPiece(move.x, move.y, "O")
-    end
-end
-
-function gameplay.draw()
-    board.draw()
-end
-
--- src/states/gameplay.lua
-local gameplay = {}
-local board = require "src.entities.board"
-local ai = require "src.utilities.ai"
-
 local mode = "local"
 local difficulty = "Easy"
 local currentPlayer = "X"
@@ -44,6 +13,7 @@ function gameplay.enter(gameMode, gameDifficulty)
     board.init()
     print("Game mode: " .. mode)
     print("Difficulty: " .. difficulty)
+    print("Entering gameplay state")
 end
 
 function gameplay.update(dt)
@@ -100,6 +70,15 @@ function getCoordinatesFromKey(key)
     if key == "8" then return 2, 3 end
     if key == "9" then return 3, 3 end
     return nil, nil
+end
+
+function gameplay.escape(key)
+    if key == "escape" then
+        -- go back to main menu.lua
+        changeState(menu)
+    else
+        love.event.quit()
+    end
 end
 
 return gameplay

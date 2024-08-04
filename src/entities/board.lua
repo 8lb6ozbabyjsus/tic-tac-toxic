@@ -1,7 +1,7 @@
 -- src/entities/board.lua
 local board = {}
 local pieces = {}
-local size = 3 -- Assuming a 3x3 board
+local size = 3 -- 3x3 board
 
 function board.init()
     -- Initialize board state

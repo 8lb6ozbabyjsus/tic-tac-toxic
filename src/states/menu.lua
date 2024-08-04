@@ -5,7 +5,6 @@ local options = {"Play vs Computer", "Play Locally", "Play Online", "Exit"}
 local difficulties = {"Easy", "Medium", "Hard", "Return to Main Menu"}
 local difficulty = "Easy"
 local state = "main"
-local currentState = nil
 local gameplay = require "src.states.gameplay"
 
 local backgroundImage
@@ -77,10 +76,10 @@ function menu.update(dt)
     -- Handle input for menu navigation
     if love.keyboard.isDown("down") then
         selection = math.min(selection + 1, #options)
-        love.timer.sleep(0.2) -- Simple debounce
+        love.timer.sleep(0.1) -- Simple debounce
     elseif love.keyboard.isDown("up") then
         selection = math.max(selection - 1, 1)
-        love.timer.sleep(0.2) -- Simple debounce
+        love.timer.sleep(0.1) -- Simple debounce
     elseif love.keyboard.isDown("return") then
         menu.selectOption()
     end
@@ -138,34 +137,45 @@ function menu.draw()
     -- log loading errors in error.log
     if #imageLoadErrors > 0 then
         local file = io.open("error.log", "w")
-        for i, error in ipairs(imageLoadErrors) do
-            file:write(error .. "\n")
+        if file then
+            for i, error in ipairs(imageLoadErrors) do
+                file:write(error .. "\n")
+            end
+            file:close()
+        else
+            print("Failed to open error.log for writing.")
         end
-        file:close()
     end
 end
 
 
 function menu.selectOption()
+    print("Current state: " .. state)
+    print("Current selection: " .. options[selection])
+
     if state == "main" then
         if options[selection] == "Play vs Computer" then
             state = "difficulty"
+            print("State changed to difficulty")
         elseif options[selection] == "Play Locally" then
             print("Starting local game")
-            currentState = gameplay
-            currentState.enter("local")
+            changeState(gameplay)
+            print("State changed to gameplay")
+            gameplay.enter("local")
         elseif options[selection] == "Play Online" then
             print("Preparing for online play")
-            currentState = gameplay
-            currentState.enter("online")
+            changeState(gameplay)
+            print("State changed to gameplay")
+            gameplay.enter("online")
         elseif options[selection] == "Exit" then
             love.event.quit()
         end
     elseif state == "difficulty" then
         difficulty = difficulties[selection]
         print("Difficulty selected: " .. difficulty)
-        currentState = gameplay
-        currentState.enter("computer", difficulty)
+        changeState(gameplay)
+        print("State changed to gameplay")
+        gameplay.enter("computer", difficulty)
     end
 end
 
